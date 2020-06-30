@@ -28,13 +28,14 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-mongoose.connect('mongodb+srv://admin:admin@cluster0-etblv.mongodb.net/oAuth?retryWrites=true&w=majority', {useUnifiedTopology: true, useNewUrlParser: true});
+mongoose.connect(process.env.DB_LINK, {useUnifiedTopology: true, useNewUrlParser: true});
 
 mongoose.set("useCreateIndex", true);
 
 const userSchema = new mongoose.Schema ({
-    email: String,
+    username: String,
     password: String,
+    name: String,
     googleId: String,
     facebookId: String,
     picture: String,
@@ -62,14 +63,14 @@ passport.serializeUser(function(user, done) {
 //Google Strategy
 
 passport.use(new GoogleStrategy({
-     clientID: "459086109376-ufmbnocifhgjhrul0cce43lloiqjbufs.apps.googleusercontent.com",
-     clientSecret: "cZbUepN8DhMzFSNvZ6bNZi4u",
-     callbackURL: "https://test-o-auth.herokuapp.com/auth/google/secrets",
+     clientID: process.env.GOOGLE_ID,
+     clientSecret: process.env.GOOGLE_SECRET,
+     callbackURL: "http://localhost:3000/auth/google/secrets",
      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
     },
     function(accessToken, refreshToken, profile, cb){
-        console.log("picture:" + profile._json.picture);
-        User.findOrCreate({googleId: profile.id, picture: profile._json.picture}, function(err, user){
+        console.log(profile);
+        User.findOrCreate({googleId: profile.id, name: profile._json.name, picture: profile._json.picture}, function(err, user){
             return cb(err, user);
         });
     }
@@ -78,12 +79,14 @@ passport.use(new GoogleStrategy({
 //Facebook Strategy
 
 passport.use(new FacebookStrategy({
-    clientID: "588477282044466",
-    callbackURL: "https://test-o-auth.herokuapp.com/auth/facebook/secrets"
+    clientID: process.env.FB_ID,
+    clientSecret: "bb353b1a5fb6276d7f83a5b11ffc3b16",
+    callbackURL: "http://localhost:3000/auth/facebook/secrets",
+    enableProof: true
   },
-  function(accessToken, refreshToken, profile, cb) {
-      console.log(profile);
-    User.findOrCreate({ facebookId: profile.id }, function (err, user) {
+  function(accessToken, refreshToken, profile, cb) {   
+    console.log(profile); 
+    User.findOrCreate({ facebookId: profile.id, name: profile._json.name, picture: "http://graph.facebook.com/"+profile.id+"/picture?type=square" }, function (err, user) {
       return cb(err, user);
     });
   }
@@ -94,10 +97,6 @@ passport.use(new FacebookStrategy({
 app.get("/", function(req, res){
     res.render("home");
 });
-
-app.get("/auth/google", passport.authenticate("google", {scope: ["profile "] }));
-
-app.get("/auth/facebook", passport.authenticate("facebook", {scope: ["profile "] }));
 
 app.get("/login", function(req, res){
     res.render("login");
@@ -117,7 +116,17 @@ app.get("/secrets", function(req, res){
     }
 });
 
+//Google
+app.get("/auth/google", passport.authenticate("google", {scope: ["profile "] }));
+
 app.get("/auth/google/secrets", passport.authenticate("google", {failureRedirect: "/login"} ), function(req, res){
+    res.redirect("/secrets");
+});
+
+//Facebook
+app.get('/auth/facebook',passport.authenticate('facebook', {session: false, scope: ['public_profile','email'] } ));
+
+app.get("/auth/facebook/secrets", passport.authenticate("facebook", {failureRedirect: "/login"} ), function(req, res){
     res.redirect("/secrets");
 });
 
@@ -147,13 +156,9 @@ app.post("/submit", function(req, res){
     })    
 });
 
-app.post("/register", function(req, res){
-    var picture;
-    if(req.body.picture){
-        var picture = req.body.picture;
-    } else{
-        var picture = "https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png";
-    }
+app.post("/register", function(req, res){        
+    var picture = "https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png";
+
     User.register({username: req.body.username, picture: picture}, req.body.password, function(err, user){        
         console.log(user);        
         if(err){
