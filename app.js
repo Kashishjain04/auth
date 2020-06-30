@@ -62,8 +62,8 @@ passport.serializeUser(function(user, done) {
 //Google Strategy
 
 passport.use(new GoogleStrategy({
-     clientID: process.env.GOOGLE_ID,
-     clientSecret: process.env.GOOGLE_SECRET,
+     clientID: "459086109376-ufmbnocifhgjhrul0cce43lloiqjbufs.apps.googleusercontent.com",
+     clientSecret: "cZbUepN8DhMzFSNvZ6bNZi4u",
      callbackURL: "http://localhost:3000/auth/google/secrets",
      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
     },
@@ -78,7 +78,7 @@ passport.use(new GoogleStrategy({
 //Facebook Strategy
 
 passport.use(new FacebookStrategy({
-    clientID: process.env.FB_ID,    
+    clientID: "588477282044466",
     callbackURL: "http://localhost:3000/auth/facebook/secrets"
   },
   function(accessToken, refreshToken, profile, cb) {
