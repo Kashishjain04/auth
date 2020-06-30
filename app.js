@@ -28,7 +28,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-mongoose.connect('mongodb://localhost:27017/usersDB', {useUnifiedTopology: true, useNewUrlParser: true});
+mongoose.connect('mongodb+srv://admin:admin@cluster0-etblv.mongodb.net/oAuth?retryWrites=true&w=majority', {useUnifiedTopology: true, useNewUrlParser: true});
 
 mongoose.set("useCreateIndex", true);
 
