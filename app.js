@@ -65,7 +65,7 @@ passport.serializeUser(function(user, done) {
 passport.use(new GoogleStrategy({
      clientID: process.env.GOOGLE_ID,
      clientSecret: process.env.GOOGLE_SECRET,
-     callbackURL: "http://localhost:3000/auth/google/secrets",
+     callbackURL: "https://test-o-auth.herokuapp.com/auth/google/secrets",
      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
     },
     function(accessToken, refreshToken, profile, cb){
@@ -81,7 +81,7 @@ passport.use(new GoogleStrategy({
 passport.use(new FacebookStrategy({
     clientID: process.env.FB_ID,
     clientSecret: "bb353b1a5fb6276d7f83a5b11ffc3b16",
-    callbackURL: "http://localhost:3000/auth/facebook/secrets",
+    callbackURL: "https://test-o-auth.herokuapp.com/auth/facebook/secrets",
     enableProof: true
   },
   function(accessToken, refreshToken, profile, cb) {   
