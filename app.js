@@ -11,6 +11,7 @@ const findOrCreate = require('mongoose-findorcreate');
 
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
+const GitHubStrategy = require('passport-github2').Strategy;
 
 const app = express();
 
@@ -38,6 +39,7 @@ const userSchema = new mongoose.Schema ({
     name: String,
     googleId: String,
     facebookId: String,
+    githubId: String,
     picture: String,
     secrets: Array
 });
@@ -81,7 +83,7 @@ passport.use(new GoogleStrategy({
 
 passport.use(new FacebookStrategy({
     clientID: process.env.FB_ID,
-    clientSecret: "bb353b1a5fb6276d7f83a5b11ffc3b16",
+    clientSecret: process.env.FB_SECRET,
     callbackURL: "https://test-o-auth.herokuapp.com/auth/facebook/secrets",
     //callbackURL: "http://localhost:3000/auth/facebook/secrets",
     enableProof: true
@@ -90,6 +92,22 @@ passport.use(new FacebookStrategy({
     console.log(profile); 
     User.findOrCreate({ facebookId: profile.id, name: profile._json.name, picture: "http://graph.facebook.com/"+profile.id+"/picture?type=square" }, function (err, user) {
       return cb(err, user);
+    });
+  }
+));
+
+//GitHub Strategy
+
+passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_ID,
+    clientSecret: process.env.GITHUB_SECRET,
+    callbackURL: "https://test-o-auth.herokuapp.com/auth/github/secrets"
+    // callbackURL: "http://localhost:3000/auth/github/secrets"
+  },
+  function(accessToken, refreshToken, profile, done) {
+      console.log(profile);
+    User.findOrCreate({ githubId: profile.id, name: profile._json.name, picture: profile._json.avatar_url }, function (err, user) {
+      return done(err, user);
     });
   }
 ));
@@ -148,6 +166,13 @@ app.get('/auth/facebook',passport.authenticate('facebook', {session: false, scop
 
 app.get("/auth/facebook/secrets", passport.authenticate("facebook", {failureRedirect: "/login"} ), function(req, res){
     res.redirect("/secrets");
+});
+
+//GitHub
+app.get('/auth/github', passport.authenticate('github', { scope: [ 'user:email' ] }));
+ 
+app.get('/auth/github/secrets', passport.authenticate('github', { failureRedirect: '/login' } ), function(req, res) {    
+    res.redirect('/secrets');
 });
 
 app.get("/logout", function(req, res){
