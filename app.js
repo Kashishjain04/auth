@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema ({
     googleId: String,
     facebookId: String,
     picture: String,
-    secret: String
+    secrets: Array
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -66,6 +66,7 @@ passport.use(new GoogleStrategy({
      clientID: process.env.GOOGLE_ID,
      clientSecret: process.env.GOOGLE_SECRET,
      callbackURL: "https://test-o-auth.herokuapp.com/auth/google/secrets",
+     //callbackURL: "http://localhost:3000/auth/google/secrets",
      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
     },
     function(accessToken, refreshToken, profile, cb){
@@ -82,6 +83,7 @@ passport.use(new FacebookStrategy({
     clientID: process.env.FB_ID,
     clientSecret: "bb353b1a5fb6276d7f83a5b11ffc3b16",
     callbackURL: "https://test-o-auth.herokuapp.com/auth/facebook/secrets",
+    //callbackURL: "http://localhost:3000/auth/facebook/secrets",
     enableProof: true
   },
   function(accessToken, refreshToken, profile, cb) {   
@@ -107,9 +109,22 @@ app.get("/register", function(req, res){
 });
 
 app.get("/secrets", function(req, res){
-    if(req.isAuthenticated()){
-        //console.log(req.user);
-        res.render("secrets", {secret: req.user.secret, picture: req.user.picture});
+    
+    User.find({"secrets": {$ne: null}}, function(err, foundUsers){
+        if(err){
+            console.log(err);
+        }
+        else{
+            if(foundUsers){
+                res.render("secrets", {usersWithSecrets: foundUsers, picture: req.user.picture});
+            }
+        }
+    });
+});
+
+app.get("/delete", function(req, res){
+    if(req.isAuthenticated()){        
+        res.render("delete", {secrets: req.user.secrets});
     } 
     else{
       res.redirect("/login");
@@ -143,17 +158,31 @@ app.get("/submit", function(req, res){
     }
 });
 
-app.post("/submit", function(req, res){    
+app.post("/submit", function(req, res){  
+    
     User.findById(req.user._id, function(err, foundUser){
         if(err){
             console.log(err);
         } else{
-            foundUser.secret = req.body.secret;
+            foundUser.secrets.push(req.body.secret)
             foundUser.save(function(){
                 res.redirect("/secrets");
             });
         }
     })    
+});
+
+app.post("/delete", function(req, res){    
+    User.findById(req.user._id, function(err, foundUser){
+        if(err){
+            console.log(err);
+        } else{
+            foundUser.secrets.pull(req.body.secret)
+            foundUser.save(function(){
+                res.redirect("/secrets");
+            });
+        }
+    })
 });
 
 app.post("/register", function(req, res){        

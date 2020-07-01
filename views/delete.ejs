@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+
+<div class="container">
+  <div class="jumbotron centered">
+    <i class="fas fa-key fa-6x"></i>
+    <h1 class="display-3">Secrets</h1>
+    <!-- <% secrets.forEach(function(secret, i){ %>
+        <button><p class="secret-text"><%= secret %></p>
+    <% }); %>     -->
+
+    <form action="/delete" method="POST">
+
+      <!-- <div class="form-group">
+        <input type="submut" class="form-control text-center" name="secret" placeholder="What you want to remove?">
+      </div> -->
+      <% secrets.forEach(function(secret, i){ %>
+    <p class="secret-text"><button type="submit" class="secret-text btn" name="secret" value="<%= secret %>""><%= secret %></button></p>
+      <% }); %>
+    </form>
+
+
+  </div>
+</div>
+<%- include('partials/footer') %>
