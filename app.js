@@ -109,14 +109,19 @@ app.get("/register", function(req, res){
 });
 
 app.get("/secrets", function(req, res){
-    
+    if(req.isAuthenticated()){
+        var picture = req.user.picture;
+    }
+    else{
+        var picture = "https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png";
+    }
     User.find({"secrets": {$ne: null}}, function(err, foundUsers){
         if(err){
             console.log(err);
         }
         else{
             if(foundUsers){
-                res.render("secrets", {usersWithSecrets: foundUsers, picture: req.user.picture});
+                res.render("secrets", {usersWithSecrets: foundUsers, picture: picture});
             }
         }
     });
