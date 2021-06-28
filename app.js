@@ -146,7 +146,7 @@ app.get("/secrets", function(req, res){
 });
 
 app.get("/delete", function(req, res){
-    if(req.isAuthenticated()){        
+    if(req.isAuthenticated()){
         res.render("delete", {secrets: req.user.secrets});
     } 
     else{
